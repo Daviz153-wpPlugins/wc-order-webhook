@@ -129,13 +129,13 @@ class WCOW_Updater {
 		);
 
 		if ( is_wp_error( $response ) ) {
-			@unlink( $tmp );
+			wp_delete_file( $tmp );
 			return $response;
 		}
 
 		$code = wp_remote_retrieve_response_code( $response );
 		if ( $code !== 200 ) {
-			@unlink( $tmp );
+			wp_delete_file( $tmp );
 			return new WP_Error( 'download_failed', "GitHub 다운로드 실패 (HTTP {$code})" );
 		}
 

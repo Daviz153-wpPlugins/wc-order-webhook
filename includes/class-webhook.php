@@ -47,7 +47,7 @@ class WCMW_Webhook {
 			if ( is_wp_error( $response ) ) {
 				$error = $response->get_error_message();
 				WCMW_Logger::insert( $order_id, 'failed', $error, $url );
-				self::notify_admin( $order_id, $url, $error, false, $item->get_name() );
+				self::notify_admin( $order_id, $url, $error, false, $item->get_name(), $order );
 				continue;
 			}
 
@@ -59,7 +59,7 @@ class WCMW_Webhook {
 			} else {
 				$error = "HTTP {$code}";
 				WCMW_Logger::insert( $order_id, 'failed', $error, $url );
-				self::notify_admin( $order_id, $url, $error, false, $item->get_name() );
+				self::notify_admin( $order_id, $url, $error, false, $item->get_name(), $order );
 			}
 		}
 
@@ -85,7 +85,7 @@ class WCMW_Webhook {
 			$order = wc_get_order( $order_id );
 			if ( ! $order ) {
 				WCMW_Logger::mark_retried( $log_id, 'permanently_failed', '주문을 찾을 수 없음' );
-				self::notify_admin( $order_id, $url, '주문을 찾을 수 없음', true, '' );
+				self::notify_admin( $order_id, $url, '주문을 찾을 수 없음', true );
 				continue;
 			}
 
@@ -120,7 +120,7 @@ class WCMW_Webhook {
 			if ( is_wp_error( $response ) ) {
 				$error = $response->get_error_message();
 				WCMW_Logger::mark_retried( $log_id, 'permanently_failed', $error );
-				self::notify_admin( $order_id, $url, $error, true, $matched_item->get_name() );
+				self::notify_admin( $order_id, $url, $error, true, $matched_item->get_name(), $order );
 				continue;
 			}
 
@@ -136,20 +136,19 @@ class WCMW_Webhook {
 			} else {
 				$error = "HTTP {$code}";
 				WCMW_Logger::mark_retried( $log_id, 'permanently_failed', $error );
-				self::notify_admin( $order_id, $url, $error, true, $matched_item->get_name() );
+				self::notify_admin( $order_id, $url, $error, true, $matched_item->get_name(), $order );
 			}
 		}
 	}
 
-	private static function notify_admin( int $order_id, string $url, string $error, bool $is_permanent = false, string $product_name = '' ): void {
+	private static function notify_admin( int $order_id, string $url, string $error, bool $is_permanent = false, string $product_name = '', ?WC_Order $order = null ): void {
 		$admin_email = get_option( 'admin_email' );
 		$site_name   = get_bloginfo( 'name' );
 		$logs_url    = admin_url( 'admin.php?page=wc-order-webhook&tab=logs' );
 		$order_url   = admin_url( "admin.php?page=wc-orders&action=edit&id={$order_id}" );
 
-		// 주문자 정보 조회
 		$customer_lines = '';
-		$order          = wc_get_order( $order_id );
+		$order          = $order ?? wc_get_order( $order_id );
 		if ( $order ) {
 			$name  = $order->get_formatted_billing_full_name();
 			$email = $order->get_billing_email();

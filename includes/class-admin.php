@@ -87,8 +87,7 @@ class WCMW_Admin {
 	}
 
 	private function render_settings(): void {
-		$test_url = esc_attr( get_option( 'wcmw_test_url', '' ) );
-		$fields   = get_option( 'wcmw_fields', WCMW_Webhook::default_fields() );
+		$fields = get_option( 'wcmw_fields', WCMW_Webhook::default_fields() );
 
 		$field_labels = array(
 			'order_id'       => '주문번호',
@@ -100,7 +99,6 @@ class WCMW_Admin {
 			'order_date'     => '결제일시',
 		);
 
-		$action_url  = esc_url( admin_url( 'admin-post.php' ) );
 		$nonce_field = wp_nonce_field( 'wcmw_save_settings', 'wcmw_nonce', true, false );
 		?>
 		<form method="post" action="<?= esc_url( admin_url( 'admin-post.php' ) ); ?>">
