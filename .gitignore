@@ -6,6 +6,10 @@ PLAN.md
 
 # Node
 node_modules/
+
+# Composer
+vendor/
+composer.lock
 npm-debug.log*
 
 # Playwright

@@ -42,6 +42,10 @@
         <exclude name="WordPress.WP.I18n"/>
         <!-- 줄 길이 제한 완화 -->
         <exclude name="Generic.Files.LineLength"/>
+        <!-- 파일명 규칙 (class-admin.php 등 유지) -->
+        <exclude name="WordPress.Files.FileName"/>
+        <!-- 단축 삼항 (?:) 허용 -->
+        <exclude name="Universal.Operators.DisallowShortTernary"/>
     </rule>
 
     <!-- 보안 규칙은 반드시 적용 -->

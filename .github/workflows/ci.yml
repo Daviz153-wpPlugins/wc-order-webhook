@@ -25,16 +25,10 @@ jobs:
         run: find . -name '*.php' -not -path './.git/*' | xargs -P4 php -l | grep -v "No syntax errors" || true
 
       - name: Install PHPCS WordPress Standards
-        run: |
-          composer global config allow-plugins.dealerdirect/phpcodesniffer-composer-installer true
-          composer global require --dev \
-            wp-coding-standards/wpcs:^3 \
-            phpcsstandards/phpcsutils:^1 \
-            phpcsstandards/phpcsextra:^1 \
-            --no-interaction --quiet
+        run: composer install --no-interaction --quiet
 
       - name: PHPCS — WordPress 코딩 스탠다드
-        run: phpcs --report=summary
+        run: ./vendor/bin/phpcs --report=summary
 
   e2e:
     name: E2E Tests (Playwright)
