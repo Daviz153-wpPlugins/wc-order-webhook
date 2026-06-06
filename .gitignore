@@ -2,6 +2,18 @@
 *.log
 PLAN.md
 CLAUDE.md
+DEVELOPMENT_LOG.md
+
+# 개발 도구
+.phpcs.xml
+.wp-env.json
+composer.json
+composer.lock
+package.json
+package-lock.json
+playwright.config.js
+.github/
+tests/
 작업지시서.md
 .playwright-mcp/
 
