@@ -86,6 +86,10 @@ class WCOW_Updater {
         }
 
         global $wp_filesystem;
+        if (!$wp_filesystem instanceof WP_Filesystem_Base) {
+            require_once ABSPATH . 'wp-admin/includes/file.php';
+            WP_Filesystem();
+        }
         $corrected = trailingslashit($remote_source) . self::PLUGIN_SLUG . '/';
 
         if ($source !== $corrected && $wp_filesystem->move($source, $corrected)) {
@@ -150,6 +154,10 @@ class WCOW_Updater {
         }
 
         $data = json_decode(wp_remote_retrieve_body($response), true);
+        if (!is_array($data) || empty($data['tag_name'])) {
+            set_transient(self::CACHE_KEY, [], HOUR_IN_SECONDS);
+            return null;
+        }
         set_transient(self::CACHE_KEY, $data, self::CACHE_TTL);
         return $data;
     }

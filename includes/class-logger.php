@@ -55,6 +55,8 @@ class WCMW_Logger {
     }
 
     private static function cleanup(): void {
+        if (mt_rand(1, 100) !== 1) return;
+
         global $wpdb;
         $table = $wpdb->prefix . 'wcmw_logs';
         $wpdb->query("DELETE FROM `{$table}` WHERE status = 'success' AND created_at < DATE_SUB(NOW(), INTERVAL 30 DAY)");

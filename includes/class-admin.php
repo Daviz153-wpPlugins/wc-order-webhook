@@ -33,12 +33,17 @@ class WCMW_Admin {
     public function enqueue_assets(string $hook): void {
         if ($hook === $this->page_hook) {
             wp_enqueue_style('wcmw-admin', WCMW_URL . 'assets/admin.css', [], WCMW_VERSION);
+            wp_enqueue_script('wcmw-admin', WCMW_URL . 'assets/admin.js', [], WCMW_VERSION, true);
+            wp_localize_script('wcmw-admin', 'wcmwAdmin', [
+                'testNonce'  => wp_create_nonce('wcmw_test_send'),
+                'clearNonce' => wp_create_nonce('wcmw_clear_logs'),
+            ]);
             return;
         }
         // Also load on product edit pages (for toggle styles)
-        global $post;
-        if (in_array($hook, ['post.php', 'post-new.php'], true) && isset($post) && $post->post_type === 'product') {
+        if (in_array($hook, ['post.php', 'post-new.php'], true) && get_post_type() === 'product') {
             wp_enqueue_style('wcmw-admin', WCMW_URL . 'assets/admin.css', [], WCMW_VERSION);
+            wp_enqueue_script('wcmw-admin', WCMW_URL . 'assets/admin.js', [], WCMW_VERSION, true);
         }
     }
 
@@ -88,7 +93,6 @@ class WCMW_Admin {
 
         $action_url  = esc_url(admin_url('admin-post.php'));
         $nonce_field = wp_nonce_field('wcmw_save_settings', 'wcmw_nonce', true, false);
-        $test_nonce  = wp_create_nonce('wcmw_test_send');
         ?>
         <form method="post" action="<?= $action_url ?>">
             <?= $nonce_field ?>
@@ -140,36 +144,11 @@ class WCMW_Admin {
             </div>
             <div id="wcmw-test-result" class="wcmw-notice" style="display:none"></div>
         </form>
-
-        <script>
-        document.getElementById('wcmw-test-btn').addEventListener('click', function () {
-            const btn    = this;
-            const result = document.getElementById('wcmw-test-result');
-            btn.disabled    = true;
-            btn.textContent = '발송 중...';
-            fetch(ajaxurl, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                body: 'action=wcmw_test_send&nonce=<?= esc_js($test_nonce) ?>'
-            })
-            .then(r => r.json())
-            .then(data => {
-                result.textContent = data.message;
-                result.className   = 'wcmw-notice ' + (data.success ? 'wcmw-success' : 'wcmw-error');
-                result.style.display = 'block';
-            })
-            .finally(() => {
-                btn.disabled    = false;
-                btn.textContent = '테스트 발송';
-            });
-        });
-        </script>
         <?php
     }
 
     private function render_logs(): void {
-        $logs        = WCMW_Logger::get_logs();
-        $clear_nonce = wp_create_nonce('wcmw_clear_logs');
+        $logs = WCMW_Logger::get_logs();
         ?>
         <div class="wcmw-log-header">
             <h2 style="margin:0">발송 로그</h2>
@@ -205,16 +184,6 @@ class WCMW_Admin {
             </tbody>
         </table>
 
-        <script>
-        document.getElementById('wcmw-clear-btn').addEventListener('click', function () {
-            if (!confirm('모든 로그를 삭제하시겠습니까?')) return;
-            fetch(ajaxurl, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                body: 'action=wcmw_clear_logs&nonce=<?= esc_js($clear_nonce) ?>'
-            }).then(() => location.reload());
-        });
-        </script>
         <?php
     }
 
@@ -258,6 +227,7 @@ class WCMW_Admin {
         $url = esc_url_raw($_POST['url'] ?? '');
         if (empty($url)) {
             wp_send_json(['success' => false, 'message' => 'URL이 없습니다.']);
+            return;
         }
 
         $product_id   = (int) ($_POST['product_id'] ?? 0);
@@ -304,9 +274,9 @@ class WCMW_Admin {
     }
 
     public function render_product_panel(): void {
-        global $post;
-        $enabled     = get_post_meta($post->ID, '_wcmw_product_enabled', true);
-        $url         = esc_attr(get_post_meta($post->ID, '_wcmw_product_url', true));
+        $product_id  = get_the_ID();
+        $enabled     = get_post_meta($product_id, '_wcmw_product_enabled', true);
+        $url         = esc_attr(get_post_meta($product_id, '_wcmw_product_url', true));
         $thumb_left  = $enabled ? '22px' : '2px';
         $track_color = $enabled ? '#2271b1' : '#ccc';
         $hidden      = $enabled ? '' : 'display:none;';
@@ -341,7 +311,7 @@ class WCMW_Admin {
                 <!-- 테스트 발송 -->
                 <p id="wcmw_test_field" style="margin:0;padding:0;<?= $hidden ?>">
                     <button type="button" id="wcmw-product-test-btn" class="button button-secondary"
-                            data-product-id="<?= (int) $post->ID ?>"
+                            data-product-id="<?= (int) $product_id ?>"
                             data-nonce="<?= wp_create_nonce('wcmw_product_test_send') ?>">
                         테스트 발송
                     </button>
@@ -350,58 +320,11 @@ class WCMW_Admin {
 
             </div>
         </div>
-        <script>
-        (function () {
-            var wrap      = document.getElementById('wcmw-toggle-wrap');
-            var checkbox  = document.getElementById('wcmw_product_enabled');
-            var track     = document.getElementById('wcmw-track');
-            var thumb     = document.getElementById('wcmw-thumb');
-            var urlField  = document.getElementById('wcmw_url_field');
-            var testField = document.getElementById('wcmw_test_field');
-
-            function applyState(on) {
-                track.style.background   = on ? '#2271b1' : '#ccc';
-                thumb.style.left         = on ? '22px' : '2px';
-                urlField.style.display   = on ? '' : 'none';
-                testField.style.display  = on ? '' : 'none';
-            }
-
-            wrap.addEventListener('click', function () {
-                checkbox.checked = !checkbox.checked;
-                applyState(checkbox.checked);
-            });
-
-            var testBtn = document.getElementById('wcmw-product-test-btn');
-            testBtn.addEventListener('click', function (e) {
-                e.stopPropagation();
-                var btn    = this;
-                var result = document.getElementById('wcmw-product-test-result');
-                var url    = document.getElementById('wcmw_product_url').value;
-                if (!url) { result.textContent = 'URL을 먼저 입력하세요.'; result.style.color = '#c00'; return; }
-                btn.disabled    = true;
-                btn.textContent = '발송 중...';
-                result.textContent = '';
-                fetch(ajaxurl, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                    body: 'action=wcmw_product_test_send&nonce=' + btn.dataset.nonce + '&product_id=' + btn.dataset.productId + '&url=' + encodeURIComponent(url)
-                })
-                .then(function (r) { return r.json(); })
-                .then(function (data) {
-                    result.textContent = data.message;
-                    result.style.color = data.success ? '#155724' : '#721c24';
-                })
-                .finally(function () {
-                    btn.disabled    = false;
-                    btn.textContent = '테스트 발송';
-                });
-            });
-        })();
-        </script>
         <?php
     }
 
     public function save_product_meta(int $post_id): void {
+        if (!current_user_can('edit_post', $post_id)) return;
         update_post_meta($post_id, '_wcmw_product_enabled', !empty($_POST['_wcmw_product_enabled']) ? '1' : '');
         update_post_meta($post_id, '_wcmw_product_url', esc_url_raw($_POST['_wcmw_product_url'] ?? ''));
     }

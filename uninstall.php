@@ -13,6 +13,9 @@ delete_option('wcmw_test_url');
 delete_option('wcmw_fields');
 delete_option('wcmw_db_version');
 
+// 업데이터 캐시 삭제
+delete_transient('wcow_github_release');
+
 // 상품 메타 삭제 (_wcmw_product_enabled, _wcmw_product_url)
 $wpdb->delete($wpdb->postmeta, ['meta_key' => '_wcmw_product_enabled']);
 $wpdb->delete($wpdb->postmeta, ['meta_key' => '_wcmw_product_url']);
@@ -20,6 +23,6 @@ $wpdb->delete($wpdb->postmeta, ['meta_key' => '_wcmw_product_url']);
 // 주문 메타 삭제 (_wcmw_sent_products)
 // HPOS 환경과 기존 방식 모두 대응
 $wpdb->delete($wpdb->postmeta, ['meta_key' => '_wcmw_sent_products']);
-if ($wpdb->get_var("SHOW TABLES LIKE '{$wpdb->prefix}wc_orders_meta'")) {
+if ($wpdb->get_var($wpdb->prepare("SHOW TABLES LIKE %s", $wpdb->prefix . 'wc_orders_meta'))) {
     $wpdb->delete("{$wpdb->prefix}wc_orders_meta", ['meta_key' => '_wcmw_sent_products']);
 }

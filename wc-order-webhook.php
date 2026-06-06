@@ -11,7 +11,10 @@
 
 if (!defined('ABSPATH')) exit;
 
-define('WCMW_VERSION', '1.0.0');
+$_wcmw_data = get_file_data(__FILE__, ['Version' => 'Version']);
+define('WCMW_VERSION', $_wcmw_data['Version']);
+unset($_wcmw_data);
+
 define('WCMW_PATH', plugin_dir_path(__FILE__));
 define('WCMW_URL', plugin_dir_url(__FILE__));
 
