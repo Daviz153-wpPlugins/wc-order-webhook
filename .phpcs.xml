@@ -7,6 +7,7 @@
     <exclude-pattern>*/node_modules/*</exclude-pattern>
     <exclude-pattern>*/tests/*</exclude-pattern>
     <exclude-pattern>*.js</exclude-pattern>
+    <exclude-pattern>*.css</exclude-pattern>
 
     <!-- WordPress 핵심 규칙 (보안·로직) 적용 -->
     <rule ref="WordPress-Core">
