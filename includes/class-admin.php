@@ -25,7 +25,7 @@ class WCMW_Admin {
             '웹훅 발송 설정',
             '웹훅 발송',
             'manage_woocommerce',
-            'wc-make-webhook',
+            'wc-order-webhook',
             [$this, 'render_page']
         );
     }
@@ -68,7 +68,7 @@ class WCMW_Admin {
 
     private function nav_tab(string $id, string $label, string $current): void {
         $active = $id === $current ? 'nav-tab-active' : '';
-        $url    = esc_url(add_query_arg(['page' => 'wc-make-webhook', 'tab' => $id], admin_url('admin.php')));
+        $url    = esc_url(add_query_arg(['page' => 'wc-order-webhook', 'tab' => $id], admin_url('admin.php')));
         echo "<a href=\"{$url}\" class=\"nav-tab {$active}\">" . esc_html($label) . '</a>';
     }
 
@@ -231,7 +231,7 @@ class WCMW_Admin {
         }
         update_option('wcmw_fields', $fields);
 
-        wp_redirect(add_query_arg(['page' => 'wc-make-webhook', 'saved' => '1'], admin_url('admin.php')));
+        wp_redirect(add_query_arg(['page' => 'wc-order-webhook', 'saved' => '1'], admin_url('admin.php')));
         exit;
     }
 

@@ -31,7 +31,7 @@ register_activation_hook(__FILE__, function () {
 add_action('plugins_loaded', function () {
     if (!class_exists('WooCommerce')) {
         add_action('admin_notices', function () {
-            echo '<div class="notice notice-error"><p><strong>WC Make Webhook:</strong> WooCommerce가 활성화되어 있어야 합니다.</p></div>';
+            echo '<div class="notice notice-error"><p><strong>WC Order Webhook:</strong> WooCommerce가 활성화되어 있어야 합니다.</p></div>';
         });
         return;
     }
