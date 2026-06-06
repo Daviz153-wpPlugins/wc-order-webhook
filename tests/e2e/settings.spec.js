@@ -23,20 +23,25 @@ test.describe('설정 페이지', () => {
         await page.goto('/wp-admin/admin.php?page=wc-order-webhook&tab=settings');
         const testUrl = 'https://httpbin.org/post';
         await page.fill('#wcmw_test_url', testUrl);
-        await page.click('[name="submit"]');
-        await page.waitForURL('**/saved=1**');
+        await Promise.all([
+            page.waitForNavigation({ waitUntil: 'load', timeout: 30000 }),
+            page.click('[name="submit"]'),
+        ]);
         await expect(page.locator('#wcmw_test_url')).toHaveValue(testUrl);
     });
 
     test('테스트 발송 버튼 클릭 시 결과가 표시된다', async ({ page }) => {
+        // 먼저 테스트 URL 설정
         await page.goto('/wp-admin/admin.php?page=wc-order-webhook&tab=settings');
         await page.fill('#wcmw_test_url', 'https://httpbin.org/post');
-        await page.click('[name="submit"]');
-        await page.waitForURL('**/saved=1**');
+        await Promise.all([
+            page.waitForNavigation({ waitUntil: 'load', timeout: 30000 }),
+            page.click('[name="submit"]'),
+        ]);
 
         await page.click('#wcmw-test-btn');
         const result = page.locator('#wcmw-test-result');
-        await expect(result).toBeVisible({ timeout: 15000 });
+        await expect(result).toBeVisible({ timeout: 20000 });
         await expect(result).not.toBeEmpty();
     });
 

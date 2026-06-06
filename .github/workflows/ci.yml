@@ -61,12 +61,23 @@ jobs:
           npx wp-env run cli wp plugin activate wc-order-webhook --quiet
           npx wp-env run cli wp option update blogname "E2E Test Site" --quiet
 
+      - name: 테스트용 상품 생성
+        id: create_product
+        run: |
+          PRODUCT_ID=$(npx wp-env run cli wp post create \
+            --post_type=product \
+            --post_title="E2E 테스트 상품" \
+            --post_status=publish \
+            --porcelain)
+          echo "product_id=${PRODUCT_ID}" >> "$GITHUB_OUTPUT"
+
       - name: Run E2E tests
         run: npx playwright test
         env:
           WP_URL: http://localhost:8888
           WP_ADMIN: admin
           WP_PASS: password
+          E2E_PRODUCT_ID: ${{ steps.create_product.outputs.product_id }}
 
       - name: Upload Playwright report (실패 시)
         if: failure()
