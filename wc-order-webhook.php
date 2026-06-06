@@ -39,8 +39,10 @@ add_action('plugins_loaded', function () {
     require_once WCMW_PATH . 'includes/class-logger.php';
     require_once WCMW_PATH . 'includes/class-webhook.php';
     require_once WCMW_PATH . 'includes/class-admin.php';
+    require_once WCMW_PATH . 'includes/class-updater.php';
 
     WCMW_Logger::maybe_upgrade();
+    new WCOW_Updater();
 
     add_action('woocommerce_payment_complete', ['WCMW_Webhook', 'send'], 10, 1);
 
