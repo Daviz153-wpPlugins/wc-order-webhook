@@ -25,6 +25,7 @@ class WCOW_Updater {
     public function __construct() {
         add_filter('pre_set_site_transient_update_plugins', [$this, 'check_update']);
         add_filter('plugins_api', [$this, 'plugin_info'], 10, 3);
+        add_filter('upgrader_source_selection', [$this, 'fix_source_dir'], 10, 4);
         add_filter('upgrader_pre_download', [$this, 'download_with_auth'], 10, 3);
     }
 
@@ -76,6 +77,21 @@ class WCOW_Updater {
             'download_link' => $release['zipball_url'],
             'last_updated'  => $release['published_at'] ?? '',
         ];
+    }
+
+    // GitHub zipball 폴더명(Daviz153-wc-order-webhook-hash/) → wc-order-webhook/ 으로 교정
+    public function fix_source_dir(string $source, string $remote_source, object $upgrader, array $hook_extra): string {
+        if (empty($hook_extra['plugin']) || $hook_extra['plugin'] !== self::PLUGIN_FILE) {
+            return $source;
+        }
+
+        global $wp_filesystem;
+        $corrected = trailingslashit($remote_source) . self::PLUGIN_SLUG . '/';
+
+        if ($source !== $corrected && $wp_filesystem->move($source, $corrected)) {
+            return $corrected;
+        }
+        return $source;
     }
 
     // private 저장소의 경우 Authorization 헤더를 붙여 직접 다운로드
