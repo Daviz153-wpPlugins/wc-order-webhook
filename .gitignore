@@ -3,3 +3,14 @@
 PLAN.md
 작업지시서.md
 .playwright-mcp/
+
+# Node
+node_modules/
+npm-debug.log*
+
+# Playwright
+playwright-report/
+test-results/
+
+# wp-env
+.wp-env/
