@@ -10,25 +10,11 @@ DEVELOPMENT_LOG.md
 
 # Node
 node_modules/
-
-# Composer
-vendor/
-composer.lock
-
-# Playwright
-playwright-report/
-test-results/
-
-# wp-env
-.wp-env/
-
-# Node
-node_modules/
-
-# Composer
-vendor/
-composer.lock
 npm-debug.log*
+
+# Composer
+vendor/
+composer.lock
 
 # Playwright
 playwright-report/

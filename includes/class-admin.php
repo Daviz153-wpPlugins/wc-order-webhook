@@ -327,6 +327,7 @@ class WCMW_Admin {
 
 		if ( is_wp_error( $response ) ) {
 			wp_send_json( array( 'success' => false, 'message' => $response->get_error_message() ) );
+			return;
 		}
 
 		$code = wp_remote_retrieve_response_code( $response );

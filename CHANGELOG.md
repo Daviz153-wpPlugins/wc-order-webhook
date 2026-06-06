@@ -1,5 +1,13 @@
 # Changelog
 
+## v1.0.6 — 2026-06-06
+
+### 수정
+- `ajax_product_test_send()` — `wp_send_json()` 후 누락된 `return` 추가 (테스트 환경 안전성)
+- `.gitignore` 중복 섹션 정리
+
+---
+
 ## v1.0.5 — 2026-06-06
 
 ### 추가
