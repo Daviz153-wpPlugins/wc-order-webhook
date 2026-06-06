@@ -17,7 +17,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  */
 class WCOW_Updater {
 
-	private const GITHUB_USER = 'Daviz153';
+	private const GITHUB_USER = 'Daviz153-wpPlugins';
 	private const GITHUB_REPO = 'wc-order-webhook';
 	private const PLUGIN_FILE = 'wc-order-webhook/wc-order-webhook.php';
 	private const PLUGIN_SLUG = 'wc-order-webhook';
