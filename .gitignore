@@ -1,6 +1,7 @@
 .DS_Store
 *.log
 PLAN.md
+CLAUDE.md
 작업지시서.md
 .playwright-mcp/
 
