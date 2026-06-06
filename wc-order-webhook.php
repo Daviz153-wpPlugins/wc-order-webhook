@@ -35,6 +35,14 @@ register_activation_hook(
 	function () {
 		require_once WCMW_PATH . 'includes/class-logger.php';
 		WCMW_Logger::create_table();
+		wp_schedule_event( time(), 'hourly', 'wcmw_retry_failed_webhooks' );
+	}
+);
+
+register_deactivation_hook(
+	__FILE__,
+	function () {
+		wp_clear_scheduled_hook( 'wcmw_retry_failed_webhooks' );
 	}
 );
 
@@ -61,6 +69,12 @@ add_action(
 		new WCOW_Updater();
 
 		add_action( 'woocommerce_payment_complete', array( 'WCMW_Webhook', 'send' ), 10, 1 );
+		add_action( 'wcmw_retry_failed_webhooks', array( 'WCMW_Webhook', 'retry_failed' ) );
+
+		// 기존 플러그인 업데이트 시 cron이 없을 수 있으므로 보장
+		if ( ! wp_next_scheduled( 'wcmw_retry_failed_webhooks' ) ) {
+			wp_schedule_event( time(), 'hourly', 'wcmw_retry_failed_webhooks' );
+		}
 
 		new WCMW_Admin();
 	}

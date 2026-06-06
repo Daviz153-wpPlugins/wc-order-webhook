@@ -184,7 +184,15 @@ class WCMW_Admin {
 					<td><?= absint( $i + 1 ); ?></td>
 					<td><?= esc_html( gmdate( 'm-d H:i', strtotime( $log['created_at'] ) ) ); ?></td>
 					<td><?= esc_html( $log['order_id'] ); ?></td>
-					<td><?= $log['status'] === 'success' ? '✅ 성공' : '❌ 실패'; ?></td>
+					<td>
+						<?=
+						match ( $log['status'] ) {
+							'success'            => '✅ 성공',
+							'permanently_failed' => '❌ 영구 실패',
+							default              => '⏳ 재시도 예정',
+						};
+	?>
+						</td>
 					<td class="wcmw-url-cell"><?= esc_html( $log['webhook_url'] ); ?></td>
 					<td><?= esc_html( $log['error_message'] ); ?></td>
 				</tr>
