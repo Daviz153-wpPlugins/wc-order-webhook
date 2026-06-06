@@ -1,5 +1,5 @@
 {
-    "name": "daviz153/wc-order-webhook",
+    "name": "daviz153-wpplugins/wc-order-webhook",
     "description": "WooCommerce 결제 완료 시 상품별 웹훅 발송",
     "type": "wordpress-plugin",
     "require-dev": {
