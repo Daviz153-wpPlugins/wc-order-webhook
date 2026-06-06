@@ -23,6 +23,9 @@ class WCMW_Admin {
 		// 플러그인 목록에 "업데이트 확인" 링크 추가
 		add_filter( 'plugin_action_links_wc-order-webhook/wc-order-webhook.php', array( $this, 'add_action_links' ) );
 		add_action( 'admin_init', array( $this, 'handle_check_update' ) );
+
+		// 자동 업데이트 토글 추가
+		add_filter( 'plugin_auto_update_setting_html', array( $this, 'auto_update_setting_html' ), 10, 2 );
 	}
 
 	public function add_action_links( array $links ): array {
@@ -32,6 +35,30 @@ class WCMW_Admin {
 		);
 		array_unshift( $links, '<a href="' . esc_url( $check_url ) . '">업데이트 확인</a>' );
 		return $links;
+	}
+
+	public function auto_update_setting_html( string $html, string $plugin_file ): string {
+		if ( $plugin_file !== 'wc-order-webhook/wc-order-webhook.php' ) {
+			return $html;
+		}
+
+		$auto_updates = (array) get_site_option( 'auto_update_plugins', array() );
+		$enabled      = in_array( $plugin_file, $auto_updates, true );
+
+		$url = wp_nonce_url(
+			add_query_arg(
+				array(
+					'action' => $enabled ? 'disable-auto-update' : 'enable-auto-update',
+					'plugin' => urlencode( $plugin_file ),
+				),
+				admin_url( 'plugins.php' )
+			),
+			'updates'
+		);
+
+		return $enabled
+			? '<a href="' . esc_url( $url ) . '">자동 업데이트 비활성화</a>'
+			: '<a href="' . esc_url( $url ) . '">자동 업데이트 활성화</a>';
 	}
 
 	public function handle_check_update(): void {
