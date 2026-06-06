@@ -34,6 +34,7 @@ wc-order-webhook/
 ### 상품별 웹훅 (글로벌 발송 없음)
 - 각 상품 편집 페이지 → "웹훅" 탭에서 URL + 활성화 토글 설정
 - `_wcmw_product_enabled` / `_wcmw_product_url` post meta 사용
+- **Order Bump 포함 모든 라인 아이템을 동일하게 처리.** 범프 상품도 개별 상품으로 간주 — 웹훅 URL이 설정돼 있으면 발송, 없으면 스킵. 범프 여부로 동작을 달리하지 않음.
 
 ### 중복 발송 방지
 - `_wcmw_sent_products` 배열을 주문 메타에 저장 (HPOS 호환)
