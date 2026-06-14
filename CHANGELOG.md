@@ -1,5 +1,14 @@
 # Changelog
 
+## v1.1.0 — 2026-06-14
+
+### 추가
+- 웹훅 발송 비동기화 — `woocommerce_payment_complete` 훅에서 즉시 HTTP 요청하지 않고 WP Cron(`wcmw_do_send`)으로 분리, 결제 완료 응답 속도 개선
+- 재시도 3회 + 지수 백오프 — 실패 후 +1h → +6h → +24h 간격으로 최대 3회 재시도, 3회 모두 실패 시 `permanently_failed` 처리
+- GitHub 업데이터 설정 분리 — `wp-config.php`에 `WCOW_GITHUB_USER`, `WCOW_GITHUB_REPO` 상수로 저장소 커스터마이징 가능 (미설정 시 기본값 유지)
+
+---
+
 ## v1.0.6 — 2026-06-06
 
 ### 수정
