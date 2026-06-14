@@ -10,6 +10,9 @@ if ( ! defined( 'ABSPATH' ) ) {
  *   - public 저장소: 별도 설정 없이 동작.
  *   - private 저장소: wp-config.php에 아래 상수 추가.
  *       define('WCOW_GITHUB_TOKEN', 'ghp_xxxxxxxxxxxx');
+ *   - 저장소 변경 시 wp-config.php에 아래 상수 추가 (선택).
+ *       define('WCOW_GITHUB_USER', 'your-org');
+ *       define('WCOW_GITHUB_REPO', 'your-repo');
  *
  * 릴리즈 방법:
  *   GitHub → Releases → "Create a new release" → 태그를 v1.1.0 형식으로 생성.
@@ -17,14 +20,17 @@ if ( ! defined( 'ABSPATH' ) ) {
  */
 class WCOW_Updater {
 
-	private const GITHUB_USER = 'Daviz153-wpPlugins';
-	private const GITHUB_REPO = 'wc-order-webhook';
+	private string $github_user;
+	private string $github_repo;
 	private const PLUGIN_FILE = 'wc-order-webhook/wc-order-webhook.php';
 	private const PLUGIN_SLUG = 'wc-order-webhook';
 	private const CACHE_KEY   = 'wcow_github_release';
 	private const CACHE_TTL   = 12 * HOUR_IN_SECONDS;
 
 	public function __construct() {
+		$this->github_user = defined( 'WCOW_GITHUB_USER' ) ? WCOW_GITHUB_USER : 'Daviz153-wpPlugins';
+		$this->github_repo = defined( 'WCOW_GITHUB_REPO' ) ? WCOW_GITHUB_REPO : 'wc-order-webhook';
+
 		add_filter( 'pre_set_site_transient_update_plugins', array( $this, 'check_update' ) );
 		add_filter( 'plugins_api', array( $this, 'plugin_info' ), 10, 3 );
 		add_filter( 'upgrader_source_selection', array( $this, 'fix_source_dir' ), 10, 4 );
@@ -45,11 +51,11 @@ class WCOW_Updater {
 		$latest = ltrim( $release['tag_name'], 'v' );
 		if ( version_compare( $latest, WCMW_VERSION, '>' ) ) {
 			$transient->response[ self::PLUGIN_FILE ] = (object) array(
-				'id'           => self::GITHUB_REPO,
+				'id'           => $this->github_repo,
 				'slug'         => self::PLUGIN_SLUG,
 				'plugin'       => self::PLUGIN_FILE,
 				'new_version'  => $latest,
-				'url'          => 'https://github.com/' . self::GITHUB_USER . '/' . self::GITHUB_REPO,
+				'url'          => 'https://github.com/' . $this->github_user . '/' . $this->github_repo,
 				'package'      => $release['zipball_url'],
 				'icons'        => array(),
 				'banners'      => array(),
@@ -75,8 +81,8 @@ class WCOW_Updater {
 			'name'          => 'WC Order Webhook',
 			'slug'          => self::PLUGIN_SLUG,
 			'version'       => ltrim( $release['tag_name'], 'v' ),
-			'author'        => '<a href="https://github.com/' . self::GITHUB_USER . '">CRMBiz</a>',
-			'homepage'      => 'https://github.com/' . self::GITHUB_USER . '/' . self::GITHUB_REPO,
+			'author'        => '<a href="https://github.com/' . $this->github_user . '">CRMBiz</a>',
+			'homepage'      => 'https://github.com/' . $this->github_user . '/' . $this->github_repo,
 			'requires'      => '6.0',
 			'requires_php'  => '8.2',
 			'sections'      => array(
@@ -157,7 +163,7 @@ class WCOW_Updater {
 		}
 
 		$response = wp_remote_get(
-			'https://api.github.com/repos/' . self::GITHUB_USER . '/' . self::GITHUB_REPO . '/releases/latest',
+			'https://api.github.com/repos/' . $this->github_user . '/' . $this->github_repo . '/releases/latest',
 			array( 'headers' => $headers, 'timeout' => 10 )
 		);
 

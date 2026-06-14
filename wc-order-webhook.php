@@ -2,7 +2,7 @@
 /**
  * Plugin Name: WC Order Webhook
  * Description: WooCommerce 결제 완료 시 지정한 URL로 웹훅을 발송합니다.
- * Version:     1.0.6
+ * Version:     1.1.0
  * Author:      CRMBiz
  * Requires PHP: 8.2
  * WC requires at least: 8.0
@@ -68,7 +68,8 @@ add_action(
 		WCMW_Logger::maybe_upgrade();
 		new WCOW_Updater();
 
-		add_action( 'woocommerce_payment_complete', array( 'WCMW_Webhook', 'send' ), 10, 1 );
+		add_action( 'woocommerce_payment_complete', array( 'WCMW_Webhook', 'schedule_send' ), 10, 1 );
+		add_action( 'wcmw_do_send', array( 'WCMW_Webhook', 'send' ) );
 		add_action( 'wcmw_retry_failed_webhooks', array( 'WCMW_Webhook', 'retry_failed' ) );
 
 		// 기존 플러그인 업데이트 시 cron이 없을 수 있으므로 보장

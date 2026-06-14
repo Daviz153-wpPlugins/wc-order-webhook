@@ -5,6 +5,10 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 class WCMW_Webhook {
 
+	public static function schedule_send( int $order_id ): void {
+		wp_schedule_single_event( time(), 'wcmw_do_send', array( $order_id ) );
+	}
+
 	public static function send( int $order_id ): void {
 		$order = wc_get_order( $order_id );
 		if ( ! $order ) {
@@ -78,13 +82,15 @@ class WCMW_Webhook {
 		$fields = get_option( 'wcmw_fields', self::default_fields() );
 
 		foreach ( $pending as $log ) {
-			$log_id   = (int) $log['id'];
-			$order_id = (int) $log['order_id'];
-			$url      = $log['webhook_url'];
+			$log_id        = (int) $log['id'];
+			$order_id      = (int) $log['order_id'];
+			$url           = $log['webhook_url'];
+			$current_count = (int) $log['retry_count'];
+			$new_count     = $current_count + 1;
 
 			$order = wc_get_order( $order_id );
 			if ( ! $order ) {
-				WCMW_Logger::mark_retried( $log_id, 'permanently_failed', '주문을 찾을 수 없음' );
+				WCMW_Logger::mark_retried( $log_id, 'permanently_failed', '주문을 찾을 수 없음', $new_count );
 				self::notify_admin( $order_id, $url, '주문을 찾을 수 없음', true );
 				continue;
 			}
@@ -102,8 +108,7 @@ class WCMW_Webhook {
 			}
 
 			if ( ! $matched_item ) {
-				// URL was changed or product removed — treat as permanently failed
-				WCMW_Logger::mark_retried( $log_id, 'permanently_failed', '상품 웹훅 URL이 변경되었거나 상품이 삭제됨' );
+				WCMW_Logger::mark_retried( $log_id, 'permanently_failed', '상품 웹훅 URL이 변경되었거나 상품이 삭제됨', $new_count );
 				continue;
 			}
 
@@ -119,14 +124,13 @@ class WCMW_Webhook {
 
 			if ( is_wp_error( $response ) ) {
 				$error = $response->get_error_message();
-				WCMW_Logger::mark_retried( $log_id, 'permanently_failed', $error );
-				self::notify_admin( $order_id, $url, $error, true, $matched_item->get_name(), $order );
+				self::handle_retry_failure( $log_id, $order_id, $url, $error, $new_count, $matched_item->get_name(), $order );
 				continue;
 			}
 
 			$code = wp_remote_retrieve_response_code( $response );
 			if ( $code >= 200 && $code < 300 ) {
-				WCMW_Logger::mark_retried( $log_id, 'success', '' );
+				WCMW_Logger::mark_retried( $log_id, 'success', '', $new_count );
 
 				// Update the duplicate guard so future payment_complete calls don't re-send
 				$sent   = $order->get_meta( '_wcmw_sent_products' ) ?: array();
@@ -135,9 +139,21 @@ class WCMW_Webhook {
 				$order->save();
 			} else {
 				$error = "HTTP {$code}";
-				WCMW_Logger::mark_retried( $log_id, 'permanently_failed', $error );
-				self::notify_admin( $order_id, $url, $error, true, $matched_item->get_name(), $order );
+				self::handle_retry_failure( $log_id, $order_id, $url, $error, $new_count, $matched_item->get_name(), $order );
 			}
+		}
+	}
+
+	private static function handle_retry_failure( int $log_id, int $order_id, string $url, string $error, int $new_count, string $product_name, WC_Order $order ): void {
+		// Backoff: 1st retry fail → +6h, 2nd → +24h, 3rd → permanently_failed
+		$backoff = array( 1 => 6 * HOUR_IN_SECONDS, 2 => 24 * HOUR_IN_SECONDS );
+
+		if ( $new_count >= 3 ) {
+			WCMW_Logger::mark_retried( $log_id, 'permanently_failed', $error, $new_count );
+			self::notify_admin( $order_id, $url, $error, true, $product_name, $order );
+		} else {
+			$next = gmdate( 'Y-m-d H:i:s', time() + $backoff[ $new_count ] );
+			WCMW_Logger::mark_retried( $log_id, 'failed', $error, $new_count, $next );
 		}
 	}
 

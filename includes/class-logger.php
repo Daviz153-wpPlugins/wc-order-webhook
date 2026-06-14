@@ -91,22 +91,22 @@ class WCMW_Logger {
 		return $wpdb->get_results(
 			$wpdb->prepare(
 				// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- table name from $wpdb->prefix
-				"SELECT * FROM `{$table}` WHERE status = 'failed' AND retry_count = 0 AND next_retry_at <= %s LIMIT 20",
+				"SELECT * FROM `{$table}` WHERE status = 'failed' AND retry_count < 3 AND next_retry_at <= %s LIMIT 20",
 				current_time( 'mysql' )
 			),
 			ARRAY_A
 		);
 	}
 
-	public static function mark_retried( int $log_id, string $status, string $error_message = '' ): void {
+	public static function mark_retried( int $log_id, string $status, string $error_message = '', int $retry_count = 1, ?string $next_retry_at = null ): void {
 		global $wpdb;
 		$wpdb->update(
 			$wpdb->prefix . 'wcmw_logs',
 			array(
 				'status'        => $status,
 				'error_message' => $error_message ?: null,
-				'retry_count'   => 1,
-				'next_retry_at' => null,
+				'retry_count'   => $retry_count,
+				'next_retry_at' => $next_retry_at,
 			),
 			array( 'id' => $log_id ),
 			array( '%s', '%s', '%d', '%s' ),
