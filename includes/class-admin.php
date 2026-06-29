@@ -33,7 +33,7 @@ class WCMW_Admin {
 			add_query_arg( 'wcmw_check_update', '1', admin_url( 'plugins.php' ) ),
 			'wcmw_check_update'
 		);
-		array_unshift( $links, '<a href="' . esc_url( $check_url ) . '">업데이트 확인</a>' );
+		array_unshift( $links, '<a href="' . esc_url( $check_url ) . '">GitHub 업데이트 확인</a>' );
 		return $links;
 	}
 
