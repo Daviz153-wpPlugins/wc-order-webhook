@@ -2,7 +2,7 @@
 /**
  * Plugin Name: WC Order Webhook
  * Description: WooCommerce 결제 완료 시 지정한 URL로 웹훅을 발송합니다.
- * Version:     1.1.0
+ * Version:     1.1.1
  * Author:      CRMBiz
  * Requires PHP: 8.2
  * WC requires at least: 8.0

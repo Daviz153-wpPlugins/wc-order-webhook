@@ -56,7 +56,7 @@ class WCOW_Updater {
 				'plugin'       => self::PLUGIN_FILE,
 				'new_version'  => $latest,
 				'url'          => 'https://github.com/' . $this->github_user . '/' . $this->github_repo,
-				'package'      => $release['zipball_url'],
+				'package'      => $this->get_download_url( $release ),
 				'icons'        => array(),
 				'banners'      => array(),
 				'requires'     => '6.0',
@@ -88,7 +88,7 @@ class WCOW_Updater {
 			'sections'      => array(
 				'changelog' => '<pre>' . esc_html( $release['body'] ?? '변경 내역 없음' ) . '</pre>',
 			),
-			'download_link' => $release['zipball_url'],
+			'download_link' => $this->get_download_url( $release ),
 			'last_updated'  => $release['published_at'] ?? '',
 		);
 	}
@@ -146,6 +146,18 @@ class WCOW_Updater {
 		}
 
 		return $tmp;
+	}
+
+	// 릴리즈 에셋 ZIP이 있으면 우선 사용, 없으면 zipball_url 폴백
+	private function get_download_url( array $release ): string {
+		if ( ! empty( $release['assets'] ) ) {
+			foreach ( $release['assets'] as $asset ) {
+				if ( str_ends_with( $asset['name'], '.zip' ) ) {
+					return $asset['browser_download_url'];
+				}
+			}
+		}
+		return $release['zipball_url'];
 	}
 
 	private function get_latest_release(): ?array {
