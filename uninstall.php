@@ -15,6 +15,9 @@ delete_option( 'wcmw_test_url' );
 delete_option( 'wcmw_fields' );
 delete_option( 'wcmw_db_version' );
 
+// WP Cron 예약 이벤트 삭제
+wp_unschedule_hook( 'wcmw_do_send' );
+
 // 업데이터 캐시 삭제
 delete_transient( 'wcow_github_release' );
 
