@@ -57,11 +57,6 @@ jobs:
           zip -r $GITHUB_WORKSPACE/wc-order-webhook-${{ github.ref_name }}.zip wc-order-webhook/
 
       - name: 릴리즈에 ZIP 업로드
-        uses: actions/upload-release-asset@v1
+        run: gh release upload ${{ github.ref_name }} wc-order-webhook-${{ github.ref_name }}.zip --clobber
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ github.event.release.upload_url }}
-          asset_path: ./wc-order-webhook-${{ github.ref_name }}.zip
-          asset_name: wc-order-webhook-${{ github.ref_name }}.zip
-          asset_content_type: application/zip
