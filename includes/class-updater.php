@@ -62,6 +62,8 @@ class WCOW_Updater {
 				'requires'     => '6.0',
 				'requires_php' => '8.2',
 			);
+		} else {
+			unset( $transient->response[ self::PLUGIN_FILE ] );
 		}
 		return $transient;
 	}
